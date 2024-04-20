@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from .env file
 const app = express();
 const port = process.env.PORT;
-app.use(express.static("public"));
+
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
