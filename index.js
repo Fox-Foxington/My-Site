@@ -1,86 +1,80 @@
 import express from "express";
 import bodyParser from 'body-parser';
 import nodemailer from 'nodemailer';
+import Discord from 'discord.js';
 import dotenv from 'dotenv';
 
-dotenv.config(); // Load environment variables from .env file
+dotenv.config();
+
 const app = express();
 const port = process.env.PORT;
 
+const client = new Discord.Client({ intents: [""] });
 
-// Middleware
+client.on('ready', () => {
+  console.log(`Logged in as ${client.user.tag}`);
+});
+
+async function sendToDiscord(message) {
+  try {
+    const channel = await client.channels.fetch(process.env.CHANNELID);
+    if (channel) {
+      await channel.send(message);
+      console.log('Message sent to Discord');
+    } else {
+      console.error('Unable to find Discord channel');
+    }
+  } catch (error) {
+    console.error('Error sending message to Discord:', error);
+  }
+}
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// Form submission route
 app.post('/send-email', (req, res) => {
-  // Get form data
-  const { name, email, subject, message } = req.body;
+  // Email sending logic
+});
 
-  // Send email logic
-  // Replace this with your actual email sending logic using nodemailer
-  // Example:
-  const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE,
-    auth: {
-      user: process.env.EMAIL_ADDRESS,
-      pass: process.env.EMAIL_PASSWORD
-    }
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_ADDRESS,
-    to: 'recipient@example.com',
-    subject: subject,
-    text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`
-  };
-
-  transporter.sendMail(mailOptions, function(error, info){
-    if (error) {
-      console.error(error);
-      res.status(500).send('Error sending email');
-    } else {
-      console.log('Email sent: ' + info.response);
-      res.send('Email sent successfully');
-    }
-  });
+app.post('/click', (req, res) => {
+  const { link } = req.body;
+  if (link) {
+    sendToDiscord(`Link clicked: ${link}`);
+    res.sendStatus(200);
+  } else {
+    res.status(400).send('Bad request');
+  }
 });
 
 app.get("/", (req, res) => {
-    res.render("index.ejs");
+  res.render("index.ejs");
 });
 
-app.get("/contact", (req, res) => {
-    res.render("contact.ejs");
-});
-
-app.get("/about", (req, res) => {
-    res.render("about.ejs");
-});
-
-app.get("/links", (req, res) => {
-    res.render("links.ejs");
-});
-
-app.get("/projects", (req, res) => {
-    res.render("projects.ejs");
-});
+// Other routes...
 
 app.get("/discord", (req, res) => {
-    res.redirect("https://discord.gg/MAeuGeCppy");
+  sendToDiscord('Discord invite link clicked');
+  res.redirect(process.env.DISCORD_LINK);
 });
 
 app.get("/htb", (req, res) => {
-    res.redirect("https://app.hackthebox.com/profile/1524555");
+  sendToDiscord('Hack The Box profile link clicked');
+  res.redirect(process.env.HTB_LINK);
 });
 
 app.get("/github", (req, res) => {
-    res.redirect("https://github.com/Fox-Foxington");
+  sendToDiscord('GitHub profile link clicked');
+  res.redirect(process.env.GITHUB_LINK);
 });
 
 app.get("/cashapp", (req, res) => {
-    res.redirect("https://cash.app/$yukikogitsune");
+  sendToDiscord('Cash App profile link clicked');
+  res.redirect(process.env.CASHAPP_LINK);
 });
+
 app.listen(port, () => {
-    console.log(`Server ruinning on port ${port}.`);
-})
+  console.log(`Main app is running on port ${port}`);
+});
+
+client.login(process.env.DISCORDTOKEN)
+  .catch(error => console.error('Error logging in to Discord:', error));
