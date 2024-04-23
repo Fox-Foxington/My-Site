@@ -13,7 +13,7 @@ const port = process.env.PORT;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 // Serve static files from the 'pics' directory
-app.use('/pics', express.static('pics'));
+app.use('/pics', express.static('/home/fox/pics'));
 
 app.post('/send-email', (req, res) => {
   // Email sending logic
@@ -104,7 +104,3 @@ app.get("/wishlist", (req, res) => {
 app.listen(port, () => {
   console.log(`Main app is running on port ${port}`);
 });
-/*
-client.login(process.env.DISCORDTOKEN)
-  .catch(error => console.error('Error logging in to Discord:', error));
-*/
